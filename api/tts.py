@@ -1,26 +1,35 @@
 from gtts import gTTS
-from io import BytesIO
+import uuid
+import os
 
 def handler(request):
-    text = request.args.get("text", "")
+    # Get text from query
+    text = request.query.get("text", "")
 
     if not text:
         return {
             "status": 400,
-            "body": "Text is required"
+            "body": "Error: text is required."
         }
 
-    # Generate MP3 in memory
-    buf = BytesIO()
-    tts = gTTS(text=text, lang="id")
-    tts.write_to_fp(buf)
-    audio_bytes = buf.getvalue()
+    filename = f"/tmp/{uuid.uuid4()}.mp3"
+
+    # Generate audio
+    tts = gTTS(text, lang="id")
+    tts.save(filename)
+
+    # Read file
+    with open(filename, "rb") as f:
+        audio_data = f.read()
+
+    # Delete temp file
+    os.remove(filename)
 
     return {
         "status": 200,
         "headers": {
-            "Content-Type": "audio/mpeg",
-            "Content-Disposition": "attachment; filename=tts.mp3"
+            "Content-Type": "audio/mpeg"
         },
-        "body": audio_bytes
+        "body": audio_data,
+        "encoding": "binary"
     }
