@@ -10,9 +10,11 @@ def handler(request):
             "body": "Text is required"
         }
 
+    # Generate MP3 in memory
     buf = BytesIO()
-    gTTS(text=text, lang='id').write_to_fp(buf)
-    mp3_bytes = buf.getvalue()
+    tts = gTTS(text=text, lang="id")
+    tts.write_to_fp(buf)
+    audio_bytes = buf.getvalue()
 
     return {
         "status": 200,
@@ -20,5 +22,5 @@ def handler(request):
             "Content-Type": "audio/mpeg",
             "Content-Disposition": "attachment; filename=tts.mp3"
         },
-        "body": mp3_bytes
+        "body": audio_bytes
     }
