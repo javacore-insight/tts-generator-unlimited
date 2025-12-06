@@ -1,77 +1,51 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>TTS Gratis Unlimited + Download</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        textarea { width: 100%; height: 120px; }
-        button { padding: 10px 20px; font-size: 16px; margin-top:10px; }
-        #download { display:none; margin-top:15px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Test</title>
 </head>
 <body>
-    <h2>Text to Speech Gratis Unlimited + Download</h2>
+    <h2>Text-to-Speech Test</h2>
 
-    <textarea id="text" placeholder="Masukkan teks..."></textarea>
+    <textarea id="text" rows="5" cols="40" placeholder="Masukkan teks..."></textarea><br><br>
+    <button onclick="generateTTS()">Generate</button>
 
-    <button onclick="speak()">🔊 Speak</button>
-    <button onclick="downloadAudio()">⬇️ Download</button>
-    
-    <a id="download" download="tts_output.wav">Klik di sini untuk download audio</a>
+    <h3>Output:</h3>
+    <audio id="audio" controls></audio>
 
-    <script>
-        let audioChunks = [];
-        let mediaRecorder;
+<script>
+async function generateTTS() {
+    let text = document.getElementById("text").value;
+    if (!text) {
+        alert("Masukkan teks dulu");
+        return;
+    }
 
-        // Setup Audio Recorder
-        async function setupRecorder() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+    const audio = document.getElementById("audio");
 
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
+    try {
+        let response = await fetch("https://applied-lazily-constitutional.trycloudflare.com/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+        });
 
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: "audio/wav" });
-                const url = URL.createObjectURL(blob);
-                const downloadLink = document.getElementById("download");
-                downloadLink.href = url;
-                downloadLink.style.display = "block";
-            };
+        if (!response.ok) {
+            throw new Error("Server error");
         }
 
-        setupRecorder();
+        let blob = await response.blob();
+        let url = URL.createObjectURL(blob);
 
-        function speak() {
-            const text = document.getElementById("text").value;
-            const message = new SpeechSynthesisUtterance(text);
+        audio.src = url;
+        audio.play();
 
-            message.lang = "id-ID";
-            message.rate = 1;
-            message.pitch = 1;
+    } catch (e) {
+        alert("Gagal menghasilkan suara: " + e);
+    }
+}
+</script>
 
-            // Start recording
-            audioChunks = [];
-            mediaRecorder.start();
-
-            // Stop recording after speech ends
-            message.onend = () => {
-                mediaRecorder.stop();
-            };
-
-            speechSynthesis.speak(message);
-        }
-
-        function downloadAudio() {
-            const link = document.getElementById("download");
-            if (link.style.display !== "none") {
-                link.click();
-            } else {
-                alert("Generate suara dulu sebelum download.");
-            }
-        }
-    </script>
 </body>
 </html>
