@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/tts.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/tts",
+      "dest": "api/tts.py"
+    }
+  ]
+}
