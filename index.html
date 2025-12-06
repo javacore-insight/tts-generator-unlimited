@@ -1,31 +1,76 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>TTS Gratis Unlimited</title>
+    <title>TTS Gratis Unlimited + Download</title>
     <style>
         body { font-family: Arial; padding: 20px; }
         textarea { width: 100%; height: 120px; }
         button { padding: 10px 20px; font-size: 16px; margin-top:10px; }
+        #download { display:none; margin-top:15px; }
     </style>
 </head>
 <body>
-    <h2>Text to Speech Gratis Unlimited</h2>
+    <h2>Text to Speech Gratis Unlimited + Download</h2>
 
     <textarea id="text" placeholder="Masukkan teks..."></textarea>
 
     <button onclick="speak()">🔊 Speak</button>
+    <button onclick="downloadAudio()">⬇️ Download</button>
+    
+    <a id="download" download="tts_output.wav">Klik di sini untuk download audio</a>
 
     <script>
+        let audioChunks = [];
+        let mediaRecorder;
+
+        // Setup Audio Recorder
+        async function setupRecorder() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: "audio/wav" });
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.getElementById("download");
+                downloadLink.href = url;
+                downloadLink.style.display = "block";
+            };
+        }
+
+        setupRecorder();
+
         function speak() {
-            const txt = document.getElementById("text").value;
-            const msg = new SpeechSynthesisUtterance(txt);
+            const text = document.getElementById("text").value;
+            const message = new SpeechSynthesisUtterance(text);
 
-            msg.lang = "id-ID";   // Bahasa Indonesia
-            msg.rate = 1;         // Kecepatan
-            msg.pitch = 1;        // Pitch
+            message.lang = "id-ID";
+            message.rate = 1;
+            message.pitch = 1;
 
-            speechSynthesis.speak(msg);
+            // Start recording
+            audioChunks = [];
+            mediaRecorder.start();
+
+            // Stop recording after speech ends
+            message.onend = () => {
+                mediaRecorder.stop();
+            };
+
+            speechSynthesis.speak(message);
+        }
+
+        function downloadAudio() {
+            const link = document.getElementById("download");
+            if (link.style.display !== "none") {
+                link.click();
+            } else {
+                alert("Generate suara dulu sebelum download.");
+            }
         }
     </script>
 </body>
