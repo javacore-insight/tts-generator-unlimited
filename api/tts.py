@@ -3,17 +3,12 @@ from io import BytesIO
 
 def handler(request):
     text = request.args.get("text", "")
-
     if not text:
-        return {
-            "status": 400,
-            "body": "Text is required"
-        }
+        return {"status": 400, "body": "Error: missing text"}
 
-    mp3_bytes = BytesIO()
-    tts = gTTS(text=text, lang="id")
-    tts.write_to_fp(mp3_bytes)
-    mp3_bytes.seek(0)
+    buf = BytesIO()
+    gTTS(text=text, lang='id').write_to_fp(buf)
+    mp3_data = buf.getvalue()
 
     return {
         "status": 200,
@@ -21,5 +16,5 @@ def handler(request):
             "Content-Type": "audio/mpeg",
             "Content-Disposition": "attachment; filename=tts.mp3"
         },
-        "body": mp3_bytes.read()
+        "body": mp3_data
     }
