@@ -1,38 +1,25 @@
 from gtts import gTTS
-from flask import Flask, request, send_file
-import uuid
-import os
+from io import BytesIO
 
-app = Flask(__name__)
-
-@app.route('/api/tts')
-def generate_tts():
+def handler(request):
     text = request.args.get("text", "")
 
     if not text:
-        return {"error": "Text is required"}, 400
+        return {
+            "status": 400,
+            "body": "Text is required"
+        }
 
-    # generate file name unik
-    filename = f"{uuid.uuid4()}.mp3"
+    mp3_bytes = BytesIO()
+    tts = gTTS(text=text, lang="id")
+    tts.write_to_fp(mp3_bytes)
+    mp3_bytes.seek(0)
 
-    # generate audio
-    tts = gTTS(text=text, lang='id')
-    tts.save(filename)
-
-    # kirim hasil ke user (download)
-    response = send_file(
-        filename,
-        mimetype="audio/mpeg",
-        as_attachment=True,
-        download_name="tts.mp3"
-    )
-
-    # hapus file setelah dikirim (supaya tidak menumpuk di server)
-    @response.call_on_close
-    def cleanup():
-        try:
-            os.remove(filename)
-        except:
-            pass
-
-    return response
+    return {
+        "status": 200,
+        "headers": {
+            "Content-Type": "audio/mpeg",
+            "Content-Disposition": "attachment; filename=tts.mp3"
+        },
+        "body": mp3_bytes.read()
+    }
